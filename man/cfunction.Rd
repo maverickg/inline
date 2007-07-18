@@ -14,7 +14,8 @@
 }
 
 \usage{
-  cfunction(sig=character(), body=character(), includes=character(), 
+  cfunction(sig=character(), body=character(), includes=character(),
+            otherdefs=character(), 
             language=c("C++", "C", "Fortran", "F95", "ObjectiveC", "ObjectiveC++"),
             verbose=FALSE, 
             convention=c(".Call", ".C", ".Fortran") )
@@ -26,7 +27,7 @@
   setCMethod(f, sig, body, ...)
 
   ## Further arguments:
-  #  setCMethod(f, sig, body, includes="", cpp=TRUE, verbose=FALSE, where=topenv(.GlobalEnv), ...)
+  #  setCMethod(f, sig, body, includes="", otherdefs="", cpp=TRUE, verbose=FALSE, where=topenv(.GlobalEnv), ...)
 }
 
 \arguments{
@@ -47,9 +48,18 @@
   \item{includes}{ A character vector of additional includes and preprocessor
     statements etc that will be put between the R includes and the user function(s).}
 
+  \item{otherdefs}{ A characted vector with the code for any further definitions of 
+    functions, classes, types, forward declarations, namespace usage clauses etc 
+    which is inserted between the includes and the declarations of the functions
+    defined in \code{sig}.}
+
   \item{language}{ A character value that specifies the source language of the
-    inline code, defaulting to C++.  In this case all functions are additionally
-    listed in the \code{extern "C"} clause.}
+    inline code. The possible values for \code{language} include all those 
+    supported by \code{R CMD SHLIB} on any platform, which are currently C, 
+    C++, Fortran, F95, ObjectiveC and ObjectiveC++; they may not all be supported
+    on your platform. One can specify the language either in full as above, or 
+    using any of the following case insensitive shortened forms: \code{c, cpp, 
+    c++, f, f95, objc, objcpp, objc++}. Defaults to \code{C++}.}
     
   \item{verbose}{ If \code{TRUE} prints the compilation output, the source
     code of the resulting program and the definitions of all declared
@@ -104,12 +114,6 @@
   Attached R includes include \code{R.h} for \code{".C"}, and
   additionally \code{Rdefines.h} and \code{R_ext\\Error.h} for
   \code{".Call"}.
-  
-  The possible values for \code{language} include all languages supported
-  by \code{R CMD SHLIB} on any platform; they may not all be supported
-  on your platform. Please note that authors have not tested ObjectiveC and
-  ObjectiveC++ due to the lack of corresponding use cases.
- 
 }
 
 \seealso{ \code{
@@ -124,30 +128,41 @@ code <- "
       do 1 i=1, n(1)
     1 x(i) = x(i)**3
 "
-cubefn <- cfunction(signature(n="integer", x="double"), code, convention=".Fortran")
+cubefn <- cfunction(signature(n="integer", x="numeric"), code, convention=".Fortran")
 
-x <- 1:10
-cubefn(10, x)$x
+x <- as.numeric(1:10)
+n <- as.integer(10)
+cubefn(n, x)$x
 
 ## Use of .C convention with C code
 ## Defining two functions, one of which calls the other
-code <- c("
+sigSq <- signature(n="integer", x="numeric")
+codeSq <- "
   for (int i=0; i < *n; i++) {
     x[i] = x[i]*x[i];
-  }
-", "
+  }"
+sigQd <- signature(n="integer", x="numeric")
+codeQd <- "
   squarefn(n, x);
   squarefn(n, x);
-")
+"
 
-fns <- cfunction(list(squarefn=signature(n="integer", x="double"),
-                      quadfn  =signature(n="integer", x="double")), 
-                      code, convention=".C")
+fns <- cfunction( list(squarefn=sigSq, quadfn=sigQd), 
+                  list(codeSq, codeQd), 
+                  convention=".C")
+
 squarefn <- fns[["squarefn"]]
 quadfn <- fns[["quadfn"]]
 
-squarefn(10, x)$x
-quadfn(10, x)$x
+squarefn(n, x)$x
+quadfn(n, x)$x
+
+## Alternative declaration using 'setCMethod'
+setCMethod(c("squarefn", "quadfn"), list(sigSq, sigQd), 
+           list(codeSq, codeQd), convention=".C")
+           
+squarefn(n, x)$x
+quadfn(n, x)$x
 
 ## Use of .Call convention with C code
 ## Multyplying each image in a stack with a 2D Gaussian at a given position

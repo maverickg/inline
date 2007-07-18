@@ -10,7 +10,7 @@ setClass("CFunc",
 )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-cfunction <- function(sig=character(), body=character(), includes=character(), 
+cfunction <- function(sig=character(), body=character(), includes=character(), otherdefs=character(),
                       language=c("C++", "C", "Fortran", "F95", "ObjectiveC", "ObjectiveC++"),
                       verbose=FALSE, convention=c(".Call", ".C", ".Fortran")) {
 
@@ -18,7 +18,10 @@ cfunction <- function(sig=character(), body=character(), includes=character(),
   
   if ( missing(language) ) language <- ifelse(convention == ".Fortran", "Fortran", "C++")
   else language <- match.arg(language)
-  
+
+  language <- switch(EXPR=tolower(language), cpp="C++", f="Fortran", f95="F95", 
+                     objc="ObjectiveC", objcpp= ,"objc++"="ObjectiveC++", language) 
+   
   f <- basename(tempfile())  
   
   if ( !is.list(sig) ) {
@@ -26,7 +29,8 @@ cfunction <- function(sig=character(), body=character(), includes=character(),
     names(sig) <- f
     names(body) <- f
   }
-  stopifnot( length(sig) == length(body) )
+  if( length(sig) != length(body) )
+    stop("mismatch between the number of functions declared in 'sig' and the number of function bodies provided in 'body'")
   
   ## GENERATE THE CODE  
   for ( i in seq_along(sig) ) {
@@ -38,6 +42,8 @@ cfunction <- function(sig=character(), body=character(), includes=character(),
 	                    "#include <R_ext/Error.h>\n", sep="");
 	      ## include further includes
 	      code <- paste(c(code, includes, ""), collapse="\n")
+	      ## include further definitions
+	      code <- paste(c(code, otherdefs, ""), collapse="\n")
       }
   	  ## generate C-function sig from the original sig
   	  if ( length(sig[[i]]) > 0 ) {
@@ -46,11 +52,12 @@ cfunction <- function(sig=character(), body=character(), includes=character(),
   	  else funCsig <- ""
   	  funCsig <- paste("SEXP", names(sig)[i], "(", funCsig, ")", sep=" ")
   	  ## add C export of the function
-  	  if ( language == "C++" ) code <- paste( code, "extern \"C\" {\n  ", funCsig, ";\n}\n\n", sep="")
+  	  if ( language == "C++" || language == "ObjectiveC++") 
+  	    code <- paste( code, "extern \"C\" {\n  ", funCsig, ";\n}\n\n", sep="")
   	  ## OPEN function 
   	  code <- paste( code, funCsig, " {\n", sep="")
   	  ## add code, split lines
-  	  code <- paste( code, paste(body[i], collapse="\n"), sep="")
+  	  code <- paste( code, paste(body[[i]], collapse="\n"), sep="")
   	  ## CLOSE function, add return and warning in case the user forgot it
   	  code <- paste( code, "\n  warning(\"your C program does not return anything!\");\n  return R_NilValue;\n}\n", sep="");
     }
@@ -62,6 +69,8 @@ cfunction <- function(sig=character(), body=character(), includes=character(),
 	      code <- "#include <R.h>\n"
 	      ## include further includes
 	      code <- paste(c(code, includes, ""), collapse="\n")
+	      ## include further definitions
+	      code <- paste(c(code, otherdefs, ""), collapse="\n")
       }
   	  ## determine function header
   	  if ( length(sig[[i]]) > 0 ) {
@@ -74,11 +83,12 @@ cfunction <- function(sig=character(), body=character(), includes=character(),
 	    }
 	    else funCsig <- ""
   	  funCsig <- paste("void", names(sig)[i], "(", funCsig, ")", sep=" ")
-	    if ( language == "C++" ) code <- paste( code, "extern \"C\" {\n  ", funCsig, ";\n}\n\n", sep="")
+	    if ( language == "C++" || language == "ObjectiveC++" ) 
+	      code <- paste( code, "extern \"C\" {\n  ", funCsig, ";\n}\n\n", sep="")
   	  ## OPEN function 
   	  code <- paste( code, funCsig, " {\n", sep="")
   	  ## add code, split lines
-  	  code <- paste( code, paste(body[i], collapse="\n"), sep="")
+  	  code <- paste( code, paste(body[[i]], collapse="\n"), sep="")
   	  ## CLOSE function
   	  code <- paste( code, "\n}\n", sep="")
     }
@@ -87,6 +97,8 @@ cfunction <- function(sig=character(), body=character(), includes=character(),
   	  if (i == 1) {
 	      ## no default includes, include further includes
 	      code <- paste(includes, collapse="\n")
+	      ## include further definitions
+	      code <- paste(c(code, otherdefs, ""), collapse="\n")
       }
   	  ## determine function header
   	  if ( length(sig[[i]]) > 0 ) {
@@ -107,7 +119,7 @@ cfunction <- function(sig=character(), body=character(), includes=character(),
   	  ## OPEN function 
   	  code <- paste( code, funCsig, decls, collapse="\n")
   	  ## add code, split lines
-  	  code <- paste( code, paste(body[i], collapse="\n"), sep="")
+  	  code <- paste( code, paste(body[[i]], collapse="\n"), sep="")
   	  ## CLOSE function
   	  code <- paste( code, "\n      RETURN\n      END\n", sep="")
     }
