@@ -18,7 +18,9 @@
             otherdefs=character(), 
             language=c("C++", "C", "Fortran", "F95", "ObjectiveC", "ObjectiveC++"),
             verbose=FALSE, 
-            convention=c(".Call", ".C", ".Fortran") )
+            convention=c(".Call", ".C", ".Fortran"),
+            Rcpp=FALSE,
+            cppargs=character(), cxxargs=character(), libargs=character())
 
   ## S4 methods for signatures
   #  f='character', sig='list', body='list'
@@ -68,6 +70,28 @@
     
   \item{convention}{ Which calling convention to use?  See the Details section.}
 
+  \item{Rcpp}{If \code{TRUE} adds inclusion of \code{Rcpp.h} to
+  \code{includes}, also queries the \code{Rcpp} package about
+  the location of header and library files and sets environment
+  variables \code{PKG_CXXFLAGS} and \code{PKG_LIBS} accordingly so that
+  the R / C++ interface provided by the \code{Rcpp} package can be
+  used. Default value is \code{FALSE}.}
+
+  \item{cppargs}{Optional character vector of tokens to be passed to
+  the compiler via the \code{PKG_CPPFLAGS} environment
+  variable. Elements should be fully formed as for example
+  \code{c("-I/usr/local/lib/foo", "-DDEBUG")} and are passed along verbatim.}
+
+  \item{cxxargs}{Optional character vector of tokens to be passed to
+  the compiler via the \code{PKG_CXXFLAGS} environment
+  variable. Elements should be fully formed as for example
+  \code{c("-I/usr/local/lib/foo", "-DDEBUG")} and are passed along verbatim.}
+
+  \item{libargs}{Optional character vector of tokens to be passed to the
+  compiler via the \code{PKG_LIBS} environment variable. Elements should
+  be fully formed as for example \code{c("-L/usr/local/lib/foo -lfoo",
+  "--lpthread")} and are passed along verbatim.}
+    
   \item{...}{ Reserved.}
 }
 
@@ -122,6 +146,10 @@
 
 \examples{
 
+x <- as.numeric(1:10)
+n <- as.integer(10)
+
+\dontrun{
 ## A simple Fortran example
 code <- "
       integer i
@@ -130,9 +158,9 @@ code <- "
 "
 cubefn <- cfunction(signature(n="integer", x="numeric"), code, convention=".Fortran")
 
-x <- as.numeric(1:10)
-n <- as.integer(10)
 cubefn(n, x)$x
+}
+
 
 ## Use of .C convention with C code
 ## Defining two functions, one of which calls the other
@@ -201,9 +229,10 @@ if (interactive()) { x11(); image(res[,,1]) }
 }
 
 \author{
-  Oleg Sklyar <\email{osklyar@ebi.ac.uk}>
-  Duncan Murdoch
-  Mike Smith
+  Oleg Sklyar <\email{osklyar@ebi.ac.uk}>,
+  Duncan Murdoch, 
+  Mike Smith,
+  Dirk Eddelbuettel
 }
 
 \keyword{file}
