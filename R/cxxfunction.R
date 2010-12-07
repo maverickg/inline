@@ -47,7 +47,6 @@ cxxfunction <- function (
 	verbose = FALSE
 	){
 	    
-		
 	f <- basename( tempfile( ) )	
 	
 	if( ! is.list( sig ) ){
@@ -83,13 +82,14 @@ SEXP %s( %s ){
 	
 	settings_includes <- if( is.null( settings$includes ) ) "" else paste( settings$includes, collapse = "\n" )
 
-	code <- sprintf( '// includes from the plugin
+	code <- sprintf( '
+// includes from the plugin
 %s
 
 // user includes
 %s
 
-// declaration
+// declarations
 extern "C" {
 %s
 }
@@ -99,7 +99,7 @@ extern "C" {
 
 ', settings_includes , paste( includes, collapse = "\n" ), 
 	paste( decl, collapse = "\n" ), 
-	paste( def, collapse = "\n") 
+	paste( def, collapse = "\n")
 	)
 
 	
@@ -150,36 +150,35 @@ extern "C" {
   	names(res) <- names(sig)
   	res <- new( "CFuncList", res )
   	
+  	DLL <- dyn.load( libLFile )
+  	
   	for( i in seq_along(sig) ){
   		res[[i]] <- new( "CFunc", code = code )
   		
-  		## this is the skeleton of the function, the external call is added below using 'body'
-  		## important here: all variables are kept in the local environment
   		fn <- function(arg) {
-  		  if ( !file.exists(libLFile) )
-  		    libLFile <<- compileCode(f, code, "C++", verbose)
-  		  if ( !( f %in% names(getLoadedDLLs()) ) ) dyn.load(libLFile)
+  		  NULL
   		}
   		
     	## Modify the function formals to give the right argument list
     	args <- formals(fn)[ rep(1, length(sig[[i]])) ]
     	names(args) <- names(sig[[i]])
     	formals(fn) <- args
+  		  
+    	## create .Call function call that will be added to 'fn'
+  		body <- quote( .Call( EXTERNALNAME, ARG) )[ c(1:2, rep(3, length(sig[[i]]))) ]
+  		for ( j in seq(along = sig[[i]]) ) body[[j+2]] <- as.name(names(sig[[i]])[j])
   		
-    	## create .C/.Call function call that will be added to 'fn'
-  		body <- quote( .Call( "EXTERNALNAME", PACKAGE=f, ARG) )[ c(1:3, rep(4, length(sig[[i]]))) ]
-  		for ( j in seq(along = sig[[i]]) ) body[[j+3]] <- as.name(names(sig[[i]])[j])
-  	
-  		body[[2]] <- names(sig)[[i]]
+  		body[[1L]] <- .Call
+  		body[[2L]] <- getNativeSymbolInfo( names(sig)[[i]], DLL )$address
   		## update the body of 'fn'
-  		body(fn)[[4]] <- body
+  		body(fn) <- body
   		## set fn as THE function in CFunc of res[[i]]
   		res[[i]]@.Data <- fn
   	}
   	
   	## clear the environment
   	rm( j )
-  	
+  	convention <- ".Call"
   	if( identical( length(sig), 1L ) ) res[[1L]] else res
 }
 
