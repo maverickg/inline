@@ -2,6 +2,15 @@
 \title{News for Package 'inline'}
 \newcommand{\cpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
 
+\section{Changes in inline version 0.3.11 (2013-02-26)}{
+  \itemize{
+    \item{Fix bug in \code{cfunction} for \code{.C} convention with raw vectors.}
+    \item{Correct \code{cfunction} to use \code{.Platform$dynlib.ext} as
+      the file extension for the library file (unless on Windows).}
+    \item{Allow \code{rcpp} wrapper to pass another plugin (as eg RcppArmadillo)}
+  }
+}
+
 \section{Changes in inline version 0.3.10 (2012-10-03)}{
   \itemize{
     \item \code{getDynLib()} error message corrected as suggested by

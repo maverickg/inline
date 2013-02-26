@@ -193,7 +193,7 @@ cfunction <- function(sig=character(), body=character(), includes=character(), o
     else {
       body <- quote( CONVENTION("EXTERNALNAME", as.logical(ARG), as.integer(ARG),
                     as.double(ARG), as.complex(ARG), as.character(ARG),
-          			    as.character(ARG), as.double(ARG)) )[ c(1:2,types+2) ]
+          			    as.raw(ARG), as.double(ARG)) )[ c(1:2,types+2) ]
       names(body) <- c( NA, "", names(sig[[i]]) )
       for ( j in seq(along = sig[[i]]) ) body[[j+2]][[2]] <- as.name(names(sig[[i]])[j])
     }
@@ -235,9 +235,9 @@ compileCode <- function(f, code, language, verbose) {
   }
   else {
     ## UNIX-alike build
-    libCFile  <- paste(tempdir(), "/", f, ".EXT", sep="")
-    libLFile  <- paste(tempdir(), "/", f, ".so", sep="")
-    libLFile2 <- paste(tempdir(), "/", f, ".sl", sep="")
+    libCFile  <- paste(tempdir(), "/", f, ".EXT",               sep="")
+    libLFile  <- paste(tempdir(), "/", f, .Platform$dynlib.ext, sep="")
+    libLFile2 <- paste(tempdir(), "/", f, ".sl",                sep="")
   }
   extension <- switch(language, "C++"=".cpp", C=".c", Fortran=".f", F95=".f95",
                                 ObjectiveC=".m", "ObjectiveC++"=".mm")

@@ -113,7 +113,7 @@ extern "C" {
 
 	LinkingTo <- settings$LinkingTo
 	if( !is.null( LinkingTo ) ){
-		paths <- .find.package(LinkingTo, quiet=TRUE)
+		paths <- find.package(LinkingTo, quiet=TRUE)
 		if( length( paths ) ){
 			flag <- paste(
 				paste0( '-I"', paths, '/include"' ),
@@ -182,4 +182,4 @@ extern "C" {
   	if( identical( length(sig), 1L ) ) res[[1L]] else res
 }
 
-rcpp <- function(...) cxxfunction(..., plugin="Rcpp")
+rcpp <- function(..., plugin="Rcpp") cxxfunction(..., plugin=plugin)
