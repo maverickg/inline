@@ -1,12 +1,12 @@
-82763a902021d53d5dd8eb82681487a6 *DESCRIPTION
+27d4cd99b2f6580025c141793bf1930f *DESCRIPTION
 1ff13b6d91caaa5fc062d0affa997133 *NAMESPACE
-f97dbcc29e2a1fa21ce205487e405843 *R/cfunction.R
+0916722f9ef5356f30f85f2801361546 *R/cfunction.R
 3661ee24e0f177e278d23dc97797e056 *R/cmethods.R
 0ca79fea3274e2b3d2f4314f391b8d15 *R/cxxfunction.R
 7e32cd42ac56d4e281a1fe82b38738a7 *R/getDynLib.R
 b060d5e5093bf71dd36ba4ca26001cac *R/package.skeleton.R
-aab9c731e25dd365a3d31cf91193e25d *inst/NEWS.Rd
-28bc7d7b51231259e339b643deb9bbcf *man/cfunction.Rd
+b9daeb107dda9cd23fa1334e12bb4ddc *inst/NEWS.Rd
+791f24278f72ac387b280b81deb0087a *man/cfunction.Rd
 601bf59c3a06707ae4084c79f9b49aad *man/cxxfunction.Rd
 18b89221354bc68a777c5ea418e6efbe *man/getDynLib.Rd
 b3bdce9185a813ca9323a263edb82db0 *man/inline-package.Rd
