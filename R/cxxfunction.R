@@ -47,7 +47,8 @@ cxxfunction <- function (
 	verbose = FALSE
 	){
 
-	f <- basename( tempfile( ) )
+	# f <- basename( tempfile( ) )
+    f <- paste0('fun', digest(list(inc = includes, body = body, settings = settings)))
 
 	if( ! is.list( sig ) ){
 		sig <- list( sig )

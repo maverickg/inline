@@ -4,7 +4,7 @@ Date: $Date: 2013-08-08 17:25:19 -0500 (Thu, 08 Aug 2013) $
 Title: Inline C, C++, Fortran function calls from R
 Author: Oleg Sklyar, Duncan Murdoch, Mike Smith, Dirk Eddelbuettel, Romain Francois
 Maintainer: Dirk Eddelbuettel <edd@debian.org>
-Depends: R (>= 2.4.0), methods
+Depends: R (>= 2.4.0), methods, digest
 Suggests: Rcpp (>= 0.8.0)
 Description: Functionality to dynamically define R functions and S4 methods
   with in-lined C, C++ or Fortran code supporting .C and .Call calling conventions.
